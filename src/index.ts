@@ -106,7 +106,7 @@ class Base {
         this.description = data?.description ?? null;
         /**
             * Represents a quiz list
-            * @typedef {Object} EmbedField
+            * @typedef {Object} Base
             * @property {string} Quiz The quiz of this Quiz
             * @property {string} Answer The answer of this Quiz
             * @property {?array} Hint The hint of this Quiz
