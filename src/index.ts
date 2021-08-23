@@ -15,6 +15,21 @@ interface Message {
     message: string;
 }
 
+interface HistoryHandle {
+    date: number;
+    settings: {
+        size: number;
+        quizSize: number;
+        falseLimit: number;
+        timer: 1800000;
+    };
+    score: {
+        collectAnswer: number;
+        wrongAnswer: number;
+    };
+    false: Boolean;
+}
+
 
 interface QuizHandle {
     name: string | null;
@@ -23,9 +38,28 @@ interface QuizHandle {
         question: string;
         answer: string;
         hint: string[];
+        time: number | null;
+    }[];
+    defaultTime: number;
+    history: {
+        date: number;
+        settings: {
+            size: number;
+            quizSize: number;
+            falseLimit: number;
+            timer: 1800000;
+        };
+        score: {
+            collectAnswer: number;
+            wrongAnswer: number;
+        };
+        false: Boolean;
     }[];
     created: number;
     lastModified: number;
+    tried: number;
+    perfect: number;
+    failure: number;
 };
 
 
@@ -38,31 +72,36 @@ class Base {
         question: string;
         answer: string;
         hint: string[];
+        time: number | null;
+    }[];
+    public defaultTime: number;
+    public history: {
+        date: number;
+        settings: {
+            size: number;
+            quizSize: number;
+            falseLimit: number;
+            timer: 1800000;
+        };
+        score: {
+            collectAnswer: number;
+            wrongAnswer: number;
+        };
+        false: Boolean;
     }[];
     public created: number;
     public lastModified: number;
-
-
-    /**
-        * Set a quiz description to the Quiz.
-        * @param {string} description The description of the Quiz
-        * @returns {Base}
-    */
+    public tried: number;
+    public perfect: number;
+    public failure: number;
 
     public setDescription(description: string): this {
         if (!description) throw new Error("description is required");
         this.description = description;
         return this;
     };
-    /**
-        * Adds a quiz to the Quiz.
-        * @param {string} name The name of the Quiz
-        * @param {string} answer The answer of the quiz
-        * @param {?array} hint The hint of the quiz
-        * @returns {Base}
-    */
 
-    public addQuiz(Question: string, Answer: string, Hint: string[] | null): this {
+    public addQuiz(Question: string, Answer: string, Hint: string[], Time: number | null): this {
         if (!Question) throw new Error("Question is required");
         if (!Answer) throw new Error("Answer is required");
         let filter = this.quizList.filter(i => i.question === Question);
@@ -70,15 +109,11 @@ class Base {
         this.quizList.push({
             question: Question,
             answer: Answer,
-            hint: Hint ?? []
+            hint: Hint ?? [],
+            time: Time ?? null
         });
         return this
     };
-    /**
-        * Remove a quiz from the Quiz.
-        * @param {string} name The name of the Quiz
-        * @returns {Base}
-    */
 
     public removeQuiz(Question: string): this {
         if (!Question || !this.quizList.find(i => i.question == Question)) throw new Error("quiz is required");
@@ -88,57 +123,77 @@ class Base {
         return this
     };
 
-    constructor(data: Base | QuizHandle) {
+    public addHistory(Data: HistoryHandle): this {
+        if (!Data.date) throw new Error("data is required");
+        if (!Data.settings?.size) throw new Error("size in settings is required");
+        if (!Data.settings?.quizSize) throw new Error("quizSize in settings is required");
+        if (!Data.settings?.falseLimit) throw new Error("falseLimit in settings is required");
+        if (!Data.settings?.timer) throw new Error("timer in settings is required");
+        if (!Data.score?.collectAnswer) throw new Error("collectAnswer in score is required");
+        if (!Data.score?.wrongAnswer) throw new Error("wrongAnswer in score is required");
+        if (typeof Data.false != "boolean") throw new Error("false is required");
+        this.history.push(Data);
+        return this;
+    };
+
+    public setDefaultTime(Time: number): this {
+        if (!Time) throw new Error("Time is required");
+        this.defaultTime = Time;
+        return this;
+    };
+
+    public addCount(Type: "tried" | "perfect" | "failure"): this {
+        if (this.created == null) throw new Error("You can use this function after create QuizkPack DataFile");
+        this[Type]++;
+        return this;
+    }
+
+    // public addTried(): this {
+    //     if (this.created == null) throw new Error("You can use this function after create QuizkPack DataFile");
+    //     this.tried++;
+    //     return this;
+    // }
+
+    // public addPerfect(): this {
+    //     if (this.created == null) throw new Error("You can use this function after create QuizkPack DataFile");
+    //     this.perfect++;
+    //     return this;
+    // }
+
+    // public addFailure(): this {
+    //     if (this.created == null) throw new Error("You can use this function after create QuizkPack DataFile");
+    //     this.failure++;
+    //     return this;
+    // }
+
+    constructor(data: Base) {
         //# handle Date
         const date: number = new Date().getTime();
 
-        /**
-            * The name of this Quiz
-            * @type {?string}
-        */
-
         this.name = data?.name ?? null;
-        /**
-            * The description of this Quiz
-            * @type {?string}
-        */
 
         this.description = data?.description ?? null;
-        /**
-            * Represents a quiz list
-            * @typedef {Object} EmbedField
-            * @property {string} Quiz The quiz of this Quiz
-            * @property {string} Answer The answer of this Quiz
-            * @property {?array} Hint The hint of this Quiz
-        */
 
-        /**
-            * The quiz list of this Quiz
-            * @type {array}
-        */
         this.quizList = [];
 
-        /**
-            * The creation date of Quiz
-            * @type {number}
-        */
+        this.defaultTime = data?.defaultTime;
+
+        this.history = [];
+
         this.created = data?.created;
 
-        /**
-            * The last revision date of Quiz
-            * @type {number}
-        */
         this.lastModified = date;
+
+        this.tried = data?.tried;
+
+        this.perfect = data?.perfect;
+
+        this.failure = data?.failure;
     };
 };
 
 
 export class QuizPack extends Base {
-    /**
-            * Set a quiz name to the Quiz.
-            * @param {string} name The name of the Quiz
-            * @returns {Base}
-        */
 
     public setName(name: string): this {
         if (!name) throw new Error("name is required");
@@ -186,15 +241,29 @@ export function createQuizPack(data: QuizHandle): object {
     }
 };
 
-export function editQuizPack(data: QuizPack, oldName?: string): object {
+export function editQuizPack(data: QuizPack, options?: { oldName?: string, type?: "edit" | "save" }): object {
     try {
         if (!data.name) throw new Error("Quiz name is required");
-        let name = oldName ?? data.name
+        let name = options?.oldName ?? data.name
         let file = fileCheck(name);
         if (file.status === 409) throw new Error(`QuizPack name ${name} is not defined`);
-        data.lastModified = new Date().getTime();
+        if (options?.type === "save") {
+            data.lastModified = new Date().getTime();
+        }
         writeFileSync(`./QuizData/${name}.json`, JSON.stringify(data));
         return { status: 200, message: `Success to edit ${name}` };
+    } catch (e: any) {
+        return sendMessage(409, e);
+    }
+};
+
+export function saveQuizPack(data: QuizPack): object {
+    try {
+        if (!data.name) throw new Error("Quiz name is required");
+        let file = fileCheck(data.name);
+        if (file.status === 409) throw new Error(`QuizPack name ${data.name} is not defined`);
+        writeFileSync(`./QuizData/${data.name}.json`, JSON.stringify(data));
+        return { status: 200, message: `Success to save ${data.name}` };
     } catch (e: any) {
         return sendMessage(409, e);
     }
@@ -229,7 +298,7 @@ export function renameQuizPack(name: string, newName: string): object {
         let data = fileCheck(name);
         let pack = new QuizPack(JSON.parse(data.message));
         pack.setName(newName);
-        editQuizPack(pack, name);
+        editQuizPack(pack, { oldName: name });
         renameSync("./QuizData/" + name + ".json", "./QuizData/" + newName + ".json");
         return sendMessage(200, "Success to rename " + name + " to " + newName);
     } catch (e: any) {
