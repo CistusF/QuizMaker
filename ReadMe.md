@@ -15,7 +15,7 @@ const quizMaker = require("./quizMaker");
 let result;
 
 // Create new QuizPack Class
-let quiz = new quizMaker.QuizPackPack()
+let quiz = new quizMaker.QuizPack()
     .setName("Sample Quiz")
     .setDescription("Sample for quizMaker docs")
     .addQuiz("Birthday of Cistus", "0310", ["He never revealed", "110 + 200"])
