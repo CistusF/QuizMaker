@@ -17,8 +17,8 @@ declare class Base {
         answer: string;
         hint: string[];
     }[];
-    readonly created: number;
-    readonly lastModified: number;
+    created: number;
+    lastModified: number;
     /**
         * Set a quiz description to the Quiz.
         * @param {string} description The description of the Quiz
@@ -49,9 +49,9 @@ export declare class QuizPack extends Base {
         */
     setName(name: string): this;
 }
-export declare function createQuiz(data: QuizHandle): object;
-export declare function editQuiz(data: QuizPack, oldName?: string): object;
-export declare function getQuiz(name?: string): Base | object;
-export declare function deleteQuiz(name: string): object;
-export declare function renameQuiz(name: string, newName: string): object;
+export declare function createQuizPack(data: QuizHandle): object;
+export declare function editQuizPack(data: QuizPack, oldName?: string): object;
+export declare function getQuizPack(name?: string): Base | object;
+export declare function deleteQuizPack(name: string): object;
+export declare function renameQuizPack(name: string, newName: string): object;
 export {};

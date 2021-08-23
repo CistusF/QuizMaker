@@ -15,7 +15,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.renameQuiz = exports.deleteQuiz = exports.getQuiz = exports.editQuiz = exports.createQuiz = exports.QuizPack = void 0;
+exports.renameQuizPack = exports.deleteQuizPack = exports.getQuizPack = exports.editQuizPack = exports.createQuizPack = exports.QuizPack = void 0;
 var fs_1 = require("fs");
 //# handle when data folder is not defined
 (function () {
@@ -26,7 +26,7 @@ var fs_1 = require("fs");
 //#region Classes
 var Base = /** @class */ (function () {
     function Base(data) {
-        var _a, _b, _c;
+        var _a, _b;
         //# handle Date
         var date = new Date().getTime();
         /**
@@ -55,7 +55,7 @@ var Base = /** @class */ (function () {
             * The creation date of Quiz
             * @type {number}
         */
-        this.created = (_c = data === null || data === void 0 ? void 0 : data.created) !== null && _c !== void 0 ? _c : null;
+        this.created = data === null || data === void 0 ? void 0 : data.created;
         /**
             * The last revision date of Quiz
             * @type {number}
@@ -158,14 +158,16 @@ function fileCheck(name) {
 }
 ;
 //# functions for User using
-function createQuiz(data) {
+function createQuizPack(data) {
     try {
+        var date = new Date().getTime();
         if (!data.name)
             throw new Error("QuizPack name is required");
         var file = fileCheck(data.name);
-        data.created = new Date().getTime();
         if (file.status === 200)
             throw new Error("QuizPack name " + data.name + " is already created");
+        data.created = date;
+        data.lastModified = date;
         fs_1.writeFileSync("./QuizData/" + data.name + ".json", JSON.stringify(data));
         return sendMessage(200, "Success to create " + data.name);
     }
@@ -173,9 +175,9 @@ function createQuiz(data) {
         return sendMessage(409, e);
     }
 }
-exports.createQuiz = createQuiz;
+exports.createQuizPack = createQuizPack;
 ;
-function editQuiz(data, oldName) {
+function editQuizPack(data, oldName) {
     try {
         if (!data.name)
             throw new Error("Quiz name is required");
@@ -183,6 +185,7 @@ function editQuiz(data, oldName) {
         var file = fileCheck(name_1);
         if (file.status === 409)
             throw new Error("QuizPack name " + name_1 + " is not defined");
+        data.lastModified = new Date().getTime();
         fs_1.writeFileSync("./QuizData/" + name_1 + ".json", JSON.stringify(data));
         return { status: 200, message: "Success to edit " + name_1 };
     }
@@ -190,9 +193,9 @@ function editQuiz(data, oldName) {
         return sendMessage(409, e);
     }
 }
-exports.editQuiz = editQuiz;
+exports.editQuizPack = editQuizPack;
 ;
-function getQuiz(name) {
+function getQuizPack(name) {
     try {
         var datas = fs_1.readdirSync("./QuizData").filter(function (i) { return i.includes(".json"); });
         if (!name)
@@ -204,8 +207,8 @@ function getQuiz(name) {
         return sendMessage(409, e);
     }
 }
-exports.getQuiz = getQuiz;
-function deleteQuiz(name) {
+exports.getQuizPack = getQuizPack;
+function deleteQuizPack(name) {
     try {
         var handle = fileCheck(name);
         if (handle.status === 409)
@@ -217,8 +220,8 @@ function deleteQuiz(name) {
         return sendMessage(409, e);
     }
 }
-exports.deleteQuiz = deleteQuiz;
-function renameQuiz(name, newName) {
+exports.deleteQuizPack = deleteQuizPack;
+function renameQuizPack(name, newName) {
     try {
         if (!name)
             throw new Error("name is required");
@@ -227,7 +230,7 @@ function renameQuiz(name, newName) {
         var data = fileCheck(name);
         var pack = new QuizPack(JSON.parse(data.message));
         pack.setName(newName);
-        editQuiz(pack, name);
+        editQuizPack(pack, name);
         fs_1.renameSync("./QuizData/" + name + ".json", "./QuizData/" + newName + ".json");
         return sendMessage(200, "Success to rename " + name + " to " + newName);
     }
@@ -235,5 +238,5 @@ function renameQuiz(name, newName) {
         return sendMessage(409, e);
     }
 }
-exports.renameQuiz = renameQuiz;
+exports.renameQuizPack = renameQuizPack;
 ;
